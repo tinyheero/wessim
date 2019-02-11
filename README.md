@@ -31,8 +31,23 @@ There are two main scripts in the package - Wessim1.py and Wessim2.py. You will 
 The basic synopsis of Wessim1 is like below:
 <pre><code>
 # Run Wessim1 in ideal target mode
->python Wessim1.py -R ref.fa -B target.bed -n 1000000 -l 100 -M model.gzip -z -o result -t 4
-</code></pre> 
+#
+# -n: Number of reads
+# -l: Length of reads
+# -m: Error model
+# -o: Output prefix
+# -t: Number of threads/cores.
+./Wessim1.py \
+    --target-fasta-file target_reference.fa \
+    --target-abd-file target_reference.abd
+    -n 1000000 \
+    -l 100 \
+    -M model.gzip \
+    -z \
+    -o result \
+    -t 4
+```
+
 This will generate *result.fastq.gz* (single-end mode / gzip compressed) using 4 threads (CPU cores).
 
 For Wessim2:
