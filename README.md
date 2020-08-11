@@ -1,11 +1,33 @@
+### Preamble
+
+This is a fork of https://github.com/sak042/Wessim. As the original repository 
+appears to be abandoned, the following new features have been add to this fork:
+
+* Ability to call Wessim from outside of repository folder
+* Option to add a prefix for simulated read names (`--read-name-prefix`)
+    + This is useful for situations where you want to track which reference 
+        (e.g. haplotype) a read came from.
+* Bug fix for paired-end mode when using the "ideal target" approach.
+* Insert sizes are drawn from a normal distributon
+* The original `getRegionVector` function has now been moved into its own 
+    script (`get_region_vector.py`). 
+
 ### Introduction
-**Wessim** is a simulator for a targeted resequencing as generally known as exome sequencing. Wessim basically generates a set of *artificial* DNA fragments for next generation sequencing (NGS) read simulation. In the targeted resequencing, we constraint the genomic regions that are used to generated DNA fragments to be only a part of the entire genome; they are usually exons and/or a few introns and untranslated regions (UTRs).
+
+**Wessim** is a simulator for a targeted resequencing as generally known as 
+exome sequencing. Wessim basically generates a set of *artificial* DNA fragments 
+for next generation sequencing (NGS) read simulation. In the targeted 
+resequencing, we constraint the genomic regions that are used to generated DNA 
+fragments to be only a part of the entire genome; they are usually exons and/or 
+a few introns and untranslated regions (UTRs).
 
 ### Install Wessim
+
 Download Wessim using the links in this page, or go to https://github.com/sak042/Wessim   
 To run Wessim, Python 2.7 or later is required. To install Python, go to http://python.org/
 
 ### Requirements
+
 The following programs are required to run Wessim or to prepare input files:
 * **pysam** library: go to http://code.google.com/p/pysam/ to install pysam
 * **numpy** library: go to http://numpy.scipy.org/ to install numpy
@@ -15,21 +37,59 @@ The following programs are required to run Wessim or to prepare input files:
 * **GemSim** error models: Wessim uses GemSim's empirical error models for NGS read generation. Go to GemSim's project page (http://sourceforge.net/projects/gemsim/) to download GemSim. You will find several model files (e.g. ill100v4_p.gzip) under 'models' directory. Save them and remember their location.
  
 ### Preparing Input Files 
-Wessim requires two major inputs. One is the sample genome sequence, and the other is the target region information.
-* **Sample genome sequence**: This is a FASTA file (e.g. ref.fa). You will need to index the file and generate .2bit
-<pre><code>
->samtools faidx ref.fa
->faToTwoBit ref.fa ref.2bit
-</code></pre>
-* **Target region information**: Target regions can be specified by two different ways.
-    1. **Ideal targets**: In ideal target mode, you will provide a list of genomic coordinates in a BED  file (e.g. chr1   798833 799125). Ideal targets of major exome capture platforms are freely available from vendor's website. For Agilent's SureSelect platforms, go to https://earray.chem.agilent.com/suredesign/ . You must register at their site. After logging in, go to Find Designs and select Agilent Catalog at the menu tab. You will be able to download all information of currently available platforms including ideal target BED files and probe sequence text files.   For NimbleGen's SeqCap go to http://www.nimblegen.com/products/seqcap/index.html and find BED files under Design and Annotation Files. 
-    2. **Probe sequences**: Probe sequences are available for SureSelect platforms in the SureDesign homepage (https://earray.chem.agilent.com/suredesign/) (see above). Usually those files are named "[platform]_probe.txt"
+
+Wessim requires two major inputs. One is the sample genome sequence, and the 
+other is the target region information.
+
+#### Sample genome sequence
+
+This is a FASTA file (e.g. ref.fa). You will need to index the file and generate 
+.2bit:
+
+```bash
+samtools faidx ref.fa
+faToTwoBit ref.fa ref.2bit
+```
+
+##### Target region information
+
+Target regions can be specified by two different ways.
+
+1. **Ideal targets**: In ideal target mode, you will provide a list of genomic 
+    coordinates in a BED file (e.g. chr1   798833 799125). Ideal targets of 
+    major exome capture platforms are freely available from vendor's website. 
+    For Agilent's SureSelect platforms, go to https://earray.chem.agilent.com/suredesign/. 
+    You must register at their site. After logging in, go to Find Designs and 
+    select Agilent Catalog at the menu tab. You will be able to download all 
+    information of currently available platforms including ideal target BED 
+    files and probe sequence text files. For NimbleGen's SeqCap go to 
+    http://www.nimblegen.com/products/seqcap/index.html and find BED files under 
+    Design and Annotation Files. 
+1. **Probe sequences**: Probe sequences are available for SureSelect platforms 
+    in the SureDesign homepage (https://earray.chem.agilent.com/suredesign/) 
+    (see above). Usually those files are named "[platform]_probe.txt"
 
 ### Running Wessim
-There are two main scripts in the package - Wessim1.py and Wessim2.py. You will use Wessim1 if you are using a BED file for target regions (ideal target approach). However,  it is highly recommended to use Wessim2 (probe hybridization approach) when the probe sequence is available; it is much more realistic and recovers the statistics of real data. Two other scripts that start with 'Prep' are used to preparing Wessim2 inputs. You can ignore remaining scripts that start with '__sub'; main Wessim programs will execute these sub scripts automatically.
+
+There are two main scripts in the package - `Wessim1.py` and `Wessim2.py.` You 
+will use Wessim1 if you are using a BED file for target regions (ideal target 
+approach). However,  it is highly recommended to use Wessim2 (probe 
+hybridization approach) when the probe sequence is available; it is much more 
+realistic and recovers the statistics of real data. Two other scripts that start 
+with 'Prep' are used to preparing Wessim2 inputs. You can ignore remaining 
+scripts that start with '__sub'; main Wessim programs will execute these sub 
+scripts automatically.
 
 The basic synopsis of Wessim1 is like below:
-<pre><code>
+
+```bash
+# Generate the reference files needed to run Wessim1.py
+./get_region_vector.py \
+    --fasta-file reference.fa \
+    --target-bed-file target.bed \
+    --target-fasta-file target_reference.fa \
+    --target-abd-file target_reference.abd
+
 # Run Wessim1 in ideal target mode
 #
 # -n: Number of reads
@@ -64,6 +124,7 @@ For Wessim2:
 This will generate *result_1.fastq.gz* and *result_2.fastq.gz* (paired-end mode / gzip compressed).
 
 ### Running in metagenomic mode
+
 You can use more than one genome as your template. To run Wessim in metagenomic mode, you can just write a simple description file that ends with (.meta). Use the meta description file at the place of your reference FASTA file (-R option)
 <pre><code>
 >python Wessim2.py -R reference.meta -P probe.txt.fa -B probe_match.txt.fa.psl -n 1000000 -l 76 -M model.gzip -pz -o result
@@ -117,7 +178,6 @@ Output options:
   -v          (v)erbose; print out intermediate messages.
 ```
 
-### Support or Contact
-For GitHub use, check out the documentation at http://help.github.com/pages or contact support@github.com and well help you sort it out.
+### Contact
 
-
+* Fong Chun Chan <fongchun@alumni.ubc.ca>
