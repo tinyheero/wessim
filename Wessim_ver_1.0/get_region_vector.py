@@ -3,9 +3,13 @@
 Generates a FASTA file from a set of regions
 """
 
-import os, argparse, sys, subprocess, pysam
+import os
+import argparse
+import sys
+import subprocess
+import pysam
 
-__author__ = "Fong Chun Chan <f.chan@achillestx.com>"
+__author__ = "Fong Chun Chan <fongchun@alumni.ubc.ca>"
 __script_examples__="""
 Examples:
 
@@ -56,16 +60,21 @@ def main(args):
         values = i.split("\t")
         if i.startswith("#") or len(values)<3:
             continue
+
         chrom = values[0]
         start = max(int(values[1]) - parameters.slack, 1)
         end = int(values[2]) + parameters.slack
+        # Target relative capture efficiency
+        target_rce = values[3]
+
         header = ">" + chrom + "_" + str(start) + "_" + str(end)
         x = ref.fetch(chrom, start, end)
         length = len(x)
         abd += length
+
         wfa.write(header + "\n")
         wfa.write(x + "\n")
-        wabd.write(str(abd) + "\n")
+        wabd.write(str(abd) + "\t" + str(target_rce))
     f.close()
     wfa.close()
     wabd.close()
