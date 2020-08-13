@@ -71,9 +71,8 @@ The basic synopsis of Wessim1 is like below:
 
 # Run Wessim1 in ideal target mode
 ./Wessim1.py \
-    -R ref.fa \
-    --fasta-file reference.fa \
-    --target-bed-file target.bed \
+    --target-fasta-file target_reference.fa \
+    --target-abd-file target_reference.abd
     -n 1000000 \
     -l 100 \
     -M model.gzip \

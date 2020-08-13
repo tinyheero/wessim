@@ -9,6 +9,7 @@ from time import time
 import argparse
 import math
 import os
+import csv
 
 inds={'A':0,'T':1,'G':2,'C':3,'N':4,'a':0,'t':1,'g':2,'c':3,'n':4}
 
@@ -81,20 +82,27 @@ def main(argv):
 	f = open(faoutfile)
 	i = f.readline()
 	seqlist = []
-	abdlist = []
 	while i:
 		header = i.strip()[1:]
 		seq = f.readline().strip()
 		seqlist.append((header, seq))
 		i = f.readline()
 	f.close()
-	f = open(abdoutfile)
-	i = f.readline()
-	while i:
-		abd = int(i.strip())
-		abdlist.append(abd)
-		i = f.readline()
-	f.close()
+
+	# Load --target-abd-file
+	abdlist = []
+	rce_list = []
+	with open(abdoutfile, "rt") as tsvfile:
+		reader = \
+			csv.DictReader(
+				tsvfile, dialect="excel-tab", fieldnames=("total_len", "rce")
+		)
+		for row in reader:
+			abd = int(row["total_len"])
+			rce = float(row["rce"])
+			abdlist.append(abd)
+			rce_list.append(rce)
+
 	last = abdlist[-1]
 
 	outfile = args.outfile + "-" + str(subid)
