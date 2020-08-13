@@ -65,6 +65,10 @@ def main(argv):
 	group4.add_argument('-q', metavar = 'INT', type=int, dest='qualbase', required=False, help='(q)uality score offset [33]', default=33)
 	group4.add_argument('-v', action='store_true', help='(v)erbose; print out intermediate messages.')
 	group4.add_argument('--read-name-prefix', dest='read_name_prefix', default = '_from_', required=False, help='Prefix to add to simulated read names (default: "%(default)s")')
+	group4.add_argument(
+        '--use-rce', action='store_true',
+        help='Use the target RCE values for generating reads'
+    )
 
 	args = parser.parse_args()
 

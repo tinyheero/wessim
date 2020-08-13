@@ -10,6 +10,8 @@ import argparse
 import math
 import os
 import csv
+import numpy as np
+import pandas as pd
 
 inds={'A':0,'T':1,'G':2,'C':3,'N':4,'a':0,'t':1,'g':2,'c':3,'n':4}
 
@@ -51,6 +53,10 @@ def main(argv):
 	group4.add_argument('-q', metavar = 'INT', type=int, dest='qualbase', required=False, help='(q)uality score offset [33]', default=33)
 	group4.add_argument('-v', action='store_true', help='(v)erbose; print out intermediate messages.')
 	group4.add_argument('--read-name-prefix', dest='read_name_prefix', default = '_from_', required=False, help='Prefix to add to simulated read names (default: "%(default)s")')
+	group4.add_argument(
+		'--use-rce', action='store_true',
+		help='Use the target RCE values for generating reads'
+	)
 
 	args = parser.parse_args()
 	faoutfile = args.target_fasta_file
@@ -89,19 +95,23 @@ def main(argv):
 		i = f.readline()
 	f.close()
 
-	# Load --target-abd-file
-	abdlist = []
-	rce_list = []
-	with open(abdoutfile, "rt") as tsvfile:
-		reader = \
-			csv.DictReader(
-				tsvfile, dialect="excel-tab", fieldnames=("total_len", "rce")
+	#
+	# Load --target-abd-file.
+	#
+	target_reference_df = \
+		pd.read_csv(
+			abdoutfile, sep="\t",
+			header=None, names=["total_len", "rce"]
 		)
-		for row in reader:
-			abd = int(row["total_len"])
-			rce = float(row["rce"])
-			abdlist.append(abd)
-			rce_list.append(rce)
+
+	target_reference_df["pos"] = np.arange(len(target_reference_df))
+
+	# Convert RCE into probability so that it can be used in
+	# `np.random.choices()`
+	target_reference_df["rce_prob"] = \
+		target_reference_df["rce"] / target_reference_df["rce"].sum()
+
+	abdlist = target_reference_df["total_len"].tolist()
 
 	last = abdlist[-1]
 
@@ -201,14 +211,34 @@ def main(argv):
 	newSD = isd*2
 
 	### Generate!
+	print("Generating reads")
 	count = 0
 	i = readstart
-	while i < readend+1:
-		pos = int(random.uniform(1, last))
-		ind = getIndex(abdlist, pos)
-		seq = seqlist[ind]
+	while i < readend + 1:
+		if args.use_rce:
+			# Sample from the list of target regions proportional to the
+			# relative capture efficiency of the target region
+			target_region_ind = \
+				np.random.choice(
+					target_reference_df["pos"].tolist(),
+					1,
+					p=target_reference_df["rce_prob"].tolist(),
+					replace=True
+				)[0]
+			print(target_region_ind)
+		else:
+			# Sample a random position from the entire genome. The closest
+			# target region will be identified using the `getIndex` function.
+			# Doing so means that larger target regions will be sampled more
+			# since it contains more positions. However, if the target regions
+			# are all nearly the same size, you shouldn't see a difference in
+			# the number of times a region is sampled.
+			pos = int(random.uniform(1, last))
+			target_region_ind = getIndex(abdlist, pos)
+
+		seq = seqlist[target_region_ind]
 		ref = seq[1]
-		refLen=len(ref)
+		refLen = len(ref)
 		header = seq[0]
 		headervalues = header.split("_")
 		fragment_chrom = headervalues[0]
@@ -219,7 +249,7 @@ def main(argv):
 			continue
 
 		gccount = getGCCount(seq)
-		keep = H2(refLen, gccount, isize, newSD, isd, gcSD,mvnTable)
+		keep = H2(refLen, gccount, isize, newSD, isd, gcSD, mvnTable)
 		if not keep:
 			continue
 		if not paired:
@@ -269,7 +299,7 @@ def main(argv):
 			wread2.write(read2.upper() + "\n")
 			wread2.write("+\n")
 			wread2.write(quals2 + "\n")
-		count +=1
+		count+=1
 		i+=1
 		if count % 1000000 == 0 and count!=1:
 			t1 = time()
@@ -307,6 +337,7 @@ def getFragmentUniform(abdlist, seqlist, last, mu, total, bind):
 		pos = int(random.uniform(1, last))
 		ind = getIndex(abdlist, pos)
 		seq = seqlist[ind][1]
+		print(seq)
 		seqlen = len(seq)
 		if seqlen < mu:
 			continue
