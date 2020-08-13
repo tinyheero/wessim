@@ -10,7 +10,6 @@ import argparse
 import math
 import os
 import csv
-import numpy as np
 import pandas as pd
 
 inds={'A':0,'T':1,'G':2,'C':3,'N':4,'a':0,'t':1,'g':2,'c':3,'n':4}
@@ -104,10 +103,10 @@ def main(argv):
 			header=None, names=["total_len", "rce"]
 		)
 
-	target_reference_df["pos"] = np.arange(len(target_reference_df))
+	target_reference_df["pos"] = numpy.arange(len(target_reference_df))
 
 	# Convert RCE into probability so that it can be used in
-	# `np.random.choices()`
+	# `numpy.random.choices()`
 	target_reference_df["rce_prob"] = \
 		target_reference_df["rce"] / target_reference_df["rce"].sum()
 
@@ -210,22 +209,45 @@ def main(argv):
 	gcSD = numpy.std(gcVector)
 	newSD = isd*2
 
-	### Generate!
+	#
+	# Start generating reads
+	#
 	print("Generating reads")
+
+	# Determine number of reads to generate
+	num_reads = readend - readstart + 1
+
+	if args.use_rce:
+		# Sample from the list of target regions proportional to the
+		# relative capture efficiency of the target region.
+		# `numpy.random.choice` is vectorized and thus we sample all the
+		# regions first.
+		#
+		# Approximately 10% of sampled fragments will fail. So we over-estimate
+		# the number of sampled target regions we need. We sample more below if
+		# needed.
+		sampled_target_region_inds = \
+			get_sampled_target_region_inds(
+				target_reference_df["pos"].tolist(),
+				target_reference_df["rce_prob"].tolist(),
+				int(num_reads * 1.2)
+			)
+
 	count = 0
 	i = readstart
 	while i < readend + 1:
+
 		if args.use_rce:
-			# Sample from the list of target regions proportional to the
-			# relative capture efficiency of the target region
-			target_region_ind = \
-				np.random.choice(
-					target_reference_df["pos"].tolist(),
-					1,
-					p=target_reference_df["rce_prob"].tolist(),
-					replace=True
-				)[0]
-			print(target_region_ind)
+			# If we have run out of target regions to sample, we re-populate
+			# the list again.
+			if len(sampled_target_region_inds) == 0:
+				sampled_target_region_inds = \
+					get_sampled_target_region_inds(
+						target_reference_df["pos"].tolist(),
+						target_reference_df["rce_prob"].tolist(),
+						int(num_reads * 1.2)
+					)
+			target_region_ind = sampled_target_region_inds.pop()
 		else:
 			# Sample a random position from the entire genome. The closest
 			# target region will be identified using the `getIndex` function.
@@ -248,10 +270,14 @@ def main(argv):
 		if refLen < imin:
 			continue
 
-		gccount = getGCCount(seq)
-		keep = H2(refLen, gccount, isize, newSD, isd, gcSD, mvnTable)
-		if not keep:
-			continue
+		# If using RCE, GC bias should already be capture. As such, we do not
+		# need to filter fragments out based on this.
+		if not args.use_rce:
+			gccount = getGCCount(ref)
+			keep = H2(refLen, gccount, isize, newSD, isd, gcSD, mvnTable)
+			if not keep:
+				continue
+
 		if not paired:
 			readLen=RL()
 			read1,pos,dir,quals1=readGen1(ref,refLen,readLen,gens(),readLen,mx1,insDict,delDict,gQList,bQList,iQList,qualbase)
@@ -260,19 +286,22 @@ def main(argv):
 			head1='@'+'r'+str(i) + read_name_prefix + fragment_chrom + "_" + str(fragment_start + pos + 1) + "_" + dirtag[dir]
 		else:
 			val=random.random()
-			ln1=RL()
-			ln2=RL()
+			ln1 = RL()
+			ln2 = RL()
 
 			# Generate paired-end reads
-			read1,pos1,dir1,quals1,read2,pos2,dir2,quals2 = readGenp2(
-				ref, refLen, ln1, ln2,
-				isize, isd, imin,
-				mx1, insDict1, delDict1, gQList, bQList, iQList, qualbase
-			)
+			read1, pos1, dir1, quals1, read2, pos2, dir2, quals2 = \
+				readGenp2(
+					ref, refLen, ln1, ln2,
+					isize, isd, imin,
+					mx1, insDict1, delDict1, gQList, bQList, iQList, qualbase
+				)
 
 			if read1 == None or quals1 == None:
+				print("read1 failed")
 				continue
 			if read2 == None or quals2 == None:
+				print("read2 failed")
 				continue
 
 			p1 = fragment_chrom + "_" + str(fragment_start + pos1 + 1) + "_" + dirtag[dir1]
@@ -337,7 +366,6 @@ def getFragmentUniform(abdlist, seqlist, last, mu, total, bind):
 		pos = int(random.uniform(1, last))
 		ind = getIndex(abdlist, pos)
 		seq = seqlist[ind][1]
-		print(seq)
 		seqlen = len(seq)
 		if seqlen < mu:
 			continue
@@ -905,14 +933,19 @@ def getProb(l,n,x,sd,gcSD,alpha, mvnpdf):
 
 
 def H2(l, n, x, sd1, sd2, gcSD, mvnpdf):
-	bp = getProb(l,n,x,sd1,gcSD,.5,mvnpdf)
-	ap = getProb(l,n,x,sd2,gcSD,9/7,mvnpdf)
+	"""
+	Parameters:
+		l: Target region length
+		n: GC content.
+		x: Fragment size
+	"""
+	bp = getProb(l, n, x, sd1, gcSD, .5, mvnpdf)
+	ap = getProb(l, n, x, sd2, gcSD, 9/7, mvnpdf)
 	v = ap/bp
 
 	r = random.random()
 	toKeep = v > r
 	return toKeep
-
 
 def norm(x):
 	y=x[0]*x[0]+x[1]*x[1]
@@ -952,8 +985,30 @@ def readmvnTable():
 	return mvnTable
 
 def getIndex(abdlist, pos):
+	"""
+	Determine the item in the abdlist that is to the immediate right of the pos.
+	This is the basically identify the closest target region
+	"""
 	i = bisect.bisect_right(abdlist, pos)
 	return i
+
+def get_sampled_target_region_inds(target_ind_list, prob_list, num_to_sample):
+	"""
+	Parameters:
+		target_ind_list: List of target indices to sample
+		prob_list: List of probabilities that indicate how likely it is to
+			sample a target
+		num_to_sample: Number of target regions to sample
+	"""
+	out_list = \
+		numpy.random.choice(
+			target_ind_list,
+			num_to_sample,
+			p=prob_list,
+			replace=True
+		).tolist()
+
+	return out_list
 
 if __name__=="__main__":
 	main(sys.argv[1:])
