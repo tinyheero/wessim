@@ -26,14 +26,27 @@ def main(argv):
 
 	group1 = parser.add_argument_group('Mandatory input files')
 	group1.add_argument(
-		"--target-fasta-file",
-		help = "The target FASTA file generated from get_region_vector.py",
-		required = True
+		'--target-fasta-file',
+		help='The target FASTA file generated from get_region_vector.py',
+		required=True
 	)
 	group1.add_argument(
-		"--target-abd-file",
-		help = "The target abd file generated from get_region_vector.py",
-		required = True
+		'--target-abd-file',
+		help='The target abd file generated from get_region_vector.py',
+		required=True
+	)
+	group1.add_argument(
+		'-n', '--num-reads',
+		metavar='INT', type=int, dest='readnumber', required=True,
+		help='total (n)umber of reads'
+	)
+	group1.add_argument(
+		'-l', metavar = 'INT', type=int, dest='readlength', required=True,
+		help='read (l)ength (bp)'
+	)
+	group1.add_argument(
+		'-M', metavar = 'FILE', dest='model', required=True,
+		help='GemSim (M)odel file (.gzip)'
 	)
 
 	group2 = parser.add_argument_group('Parameters for exome capture')
@@ -43,20 +56,12 @@ def main(argv):
 		help='mean (f)ragment size. this corresponds to insert size when sequencing in paired-end mode. [200]',
 		default=200
 	)
-
 	group2.add_argument('-d', metavar = 'INT', type=int, dest='fragsd', required=False, help='standard (d)eviation of fragment size [50]', default=50)
 	group2.add_argument('-m', metavar = 'INT', type=int, dest='fragmin', required=False, help='(m)inimum fragment length [read_length + 20]')
 	group2.add_argument('-x', metavar = 'INT',type=int, dest='slack', required=False, help='slack margin of the given boundaries [0]', default=0)
 
 	group3 = parser.add_argument_group('Parameters for sequencing')
 	group3.add_argument('-p', action='store_true', help='generate paired-end reads [single]')
-	group3.add_argument(
-		'-n', '--num-reads',
-		metavar = 'INT', type=int, dest='readnumber', required=True,
-		help='total (n)umber of reads'
-	)
-	group3.add_argument('-l', metavar = 'INT', type=int, dest='readlength', required=True, help='read (l)ength (bp)')
-	group3.add_argument('-M', metavar = 'FILE', dest='model', required=True, help='GemSim (M)odel file (.gzip)')
 	group3.add_argument('-t', metavar = 'INT', type=int, dest='threadnumber', required=False, help='number of (t)hreaded subprocesses [1]', default=1)
 
 	group4 = parser.add_argument_group('Output options')
@@ -66,9 +71,9 @@ def main(argv):
 	group4.add_argument('-v', action='store_true', help='(v)erbose; print out intermediate messages.')
 	group4.add_argument('--read-name-prefix', dest='read_name_prefix', default = '_from_', required=False, help='Prefix to add to simulated read names (default: "%(default)s")')
 	group4.add_argument(
-        '--use-rce', action='store_true',
-        help='Use the target RCE values for generating reads'
-    )
+		'--use-rce', action='store_true',
+		help='Use the target RCE values for generating reads'
+)
 
 	args = parser.parse_args()
 
