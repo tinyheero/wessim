@@ -63,23 +63,23 @@ Once that is complete, you need to provide Wessim with a target [BED file](https
 to indicate where fragments/reads should be generated from. For example:
 
 ```
-chr1	100	1000
-chr9	1000	5000
+chr14	19377416	19377841
+chr14	19378230	19378655
 ```
 
-By default, wessim will simulate from these target regions proportional to the
+By default, Wessim will simulate from these target regions proportional to the
 length of the region. if you want to have a bit more control over this, you can
-specify a "relative capture efficiency" (rce) as the 5th column in the bed file.
+specify a "relative capture efficiency" (RCE) as the 5th column in the bed file.
 For example:
 
 ```
-chr1	100	1000	chr1:100-2000	2
-chr9	1000	5000	chr9:1000-5000	1
+chr14	19377416	19377841	chr14:19377416-19377841	1
+chr14	19378230	19378655	chr14:19378230-19378655	2
 ```
 
-The rce value of a region represents the relative weight that wessim should be 
+The RCE value of a region represents the relative weight that wessim should be 
 sampling reads from. in this case, it was sample twice as many reads from 
-region `chr1:100-1000` than `chr9:1000-5000`. 
+region `chr14:19378230-19378655` than `chr14:19377416-19377841`. 
 
 ## Example usage
 
@@ -126,6 +126,12 @@ This will generate `result.fastq.gz` (single-end mode / gzip compressed) using
 
 If you want to try it with RCE values, use the `example_data/example_rce.bed`
 BED file.
+
+## Release History
+
+* 2.0: 
+    + 
+* 1.0: Fork of the original repository (https://github.com/sak042/Wessim)
 
 ## Contact
 
