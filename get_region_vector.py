@@ -43,10 +43,7 @@ def main(args):
     parameters = parse_args(args)
 
     print "Generating fasta file for given regions..."
-
-    # Input files
     ref = pysam.Fastafile(parameters.fasta_file)
-#    f = open(parameters.target_bed_file)
 
     # Output files
     faoutfile = parameters.target_fasta_file
@@ -56,25 +53,25 @@ def main(args):
 
     abd = 0
     with open(parameters.target_bed_file) as f:
-        i = f.readline()
-        values = i.split("\t")
-        if i.startswith("#") or len(values) < 3:
-            next(f)
+        for line in f:
+            values = line.split("\t")
+            if line.startswith("#") or len(values) < 3:
+                next(f)
 
-        chrom = values[0]
-        start = max(int(values[1]) - parameters.slack, 1)
-        end = int(values[2]) + parameters.slack
-        # Target relative capture efficiency
-        target_rce = values[3]
+            chrom = values[0]
+            start = max(int(values[1]) - parameters.slack, 1)
+            end = int(values[2]) + parameters.slack
+            # Target relative capture efficiency
+            target_rce = values[4]
 
-        header = ">" + chrom + "_" + str(start) + "_" + str(end)
-        x = ref.fetch(chrom, start, end)
-        length = len(x)
-        abd += length
+            header = ">" + chrom + "_" + str(start) + "_" + str(end)
+            x = ref.fetch(chrom, start, end)
+            length = len(x)
+            abd += length
 
-        wfa.write(header + "\n")
-        wfa.write(x + "\n")
-        wabd.write(str(abd) + "\t" + str(target_rce))
+            wfa.write(header + "\n")
+            wfa.write(x + "\n")
+            wabd.write(str(abd) + "\t" + str(target_rce) + "\n")
     f.close()
     wfa.close()
     wabd.close()
