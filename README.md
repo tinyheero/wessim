@@ -45,35 +45,22 @@ prepare input files:
     several model files (e.g. `ill100v4_p.gzip`) under models directory. Save 
     them and remember their location.
  
-## Preparing Input Files 
+## Running Wessim
 
-Wessim requires two major inputs. One is the sample genome sequence, and the 
-other is the target region information.
+**As mentioned at the top, only instructions for running Wessim in ideal
+target mode are provided. Please see the original repository for running Wessim
+in probe hybridization mode**
 
-### Sample genome sequence
-
-This is a FASTA file (e.g. ref.fa). You will need to index the file and generate 
-.2bit:
+Before you can run Wessim, you need to ensure that your genome FASTA file is
+indexed. You can do this by running:
 
 ```bash
 samtools faidx ref.fa
 faToTwoBit ref.fa ref.2bit
 ```
 
-## Running Wessim
-
-There are two modes you can run Wessim in:
-
-1. Ideal target mode
-1. Probe hybridization mode:
-    + For running this mode, you should refer back to the original repository. 
-        A lot of the code changes to the code in this repository was designed
-        for the ideal target mode. This README will not talk about this mode
-        any further.
-
-### Ideal Target Mode
-
-To run ideal target mode:
+Once that is complete, you need to provide with a target [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) 
+file. 
 
 ```bash
 # Generate the reference files needed to run Wessim1.py
@@ -95,7 +82,8 @@ To run ideal target mode:
     -t 4
 ```
 
-This will generate `result.fastq.gz` (single-end mode / gzip compressed) using 4 threads (CPU cores).
+This will generate `result.fastq.gz` (single-end mode / gzip compressed) using 
+4 threads (CPU cores).
 
 ## Contact
 
