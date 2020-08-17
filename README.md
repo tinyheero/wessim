@@ -12,12 +12,17 @@ fork:
 * Insert sizes are drawn from a normal distributon
 * The original `getRegionVector` function has now been moved into its own 
     script (`get_region_vector.py`). 
+* Cleaned up the original repository (e.g. removed the `Wessim_ver_1.0` folder)
+
+**Enhancements to the code have been done for the "ideal target" mode (i.e.
+`Wessim1.py`. If you are looking to run the probe hybridization module, you 
+should refer back to the original repository (https://github.com/sak042/Wessim)**
 
 # Introduction
 
-**Wessim** is a simulator for a targeted resequencing as generally known as 
-exome sequencing. Wessim basically generates a set of *artificial* DNA fragments 
-for next generation sequencing (NGS) read simulation. In the targeted 
+Wessim is a simulator for a targeted resequencing as generally known as 
+exome sequencing. Wessim basically generates a set of **artificial** DNA 
+fragments for next generation sequencing (NGS) read simulation. In the targeted 
 resequencing, we constraint the genomic regions that are used to generated DNA 
 fragments to be only a part of the entire genome; they are usually exons and/or 
 a few introns and untranslated regions (UTRs).
@@ -28,8 +33,6 @@ Download Wessim using the links in this page, or go to https://github.com/sak042
 To run Wessim, Python 2.7 or later is required. To install Python, go to http://python.org/
 
 ## Requirements
-
-Depending on which version f
 
 The following programs are required to run Wessim or to prepare input files:
 
@@ -71,11 +74,8 @@ running Wessim.
     http://www.nimblegen.com/products/seqcap/index.html and find BED files under 
     Design and Annotation Files. 
 
-1. **Probe sequences**: Probe sequences are available for SureSelect platforms 
-    in the SureDesign homepage (https://earray.chem.agilent.com/suredesign/) 
-    (see above). Usually those files are named "[platform]_probe.txt"
-
-The probe
+The probe sequences are only needed for running Wessim in probe hybridization
+mode.
 
 # Running Wessim
 
@@ -112,7 +112,7 @@ To run ideal target mode:
     -t 4
 ```
 
-This will generate *result.fastq.gz* (single-end mode / gzip compressed) using 4 threads (CPU cores).
+This will generate `result.fastq.gz` (single-end mode / gzip compressed) using 4 threads (CPU cores).
 
 # Contact
 
