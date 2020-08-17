@@ -61,7 +61,11 @@ def main(argv):
 	group2.add_argument('-x', metavar = 'INT',type=int, dest='slack', required=False, help='slack margin of the given boundaries [0]', default=0)
 
 	group3 = parser.add_argument_group('Parameters for sequencing')
-	group3.add_argument('-p', action='store_true', help='generate paired-end reads [single]')
+	group3.add_argument(
+		'-p', '--paired-reads',
+		action='store_true',
+		help='Generate paired-end reads'
+	)
 	group3.add_argument('-t', metavar = 'INT', type=int, dest='threadnumber', required=False, help='number of (t)hreaded subprocesses [1]', default=1)
 
 	group4 = parser.add_argument_group('Output options')
@@ -82,7 +86,7 @@ def main(argv):
 	imin = args.fragmin
 	slack = args.slack
 
-	paired = args.p
+	paired = args.paired_reads
 	readlength = args.readlength
 	readnumber = args.readnumber
 	threadnumber = args.threadnumber

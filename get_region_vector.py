@@ -61,8 +61,6 @@ def main(args):
             chrom = values[0]
             start = max(int(values[1]) - parameters.slack, 1)
             end = int(values[2]) + parameters.slack
-            # Target relative capture efficiency
-            target_rce = values[4]
 
             header = ">" + chrom + "_" + str(start) + "_" + str(end)
             x = ref.fetch(chrom, start, end)
@@ -71,7 +69,14 @@ def main(args):
 
             wfa.write(header + "\n")
             wfa.write(x + "\n")
-            wabd.write(str(abd) + "\t" + str(target_rce) + "\n")
+
+            # If there is a 5th column, then we assume it is the relative
+            # capture efficiency (RCE)
+            if len(values) == 5:
+                target_rce = values[4]
+                wabd.write(str(abd) + "\t" + str(target_rce) + "\n")
+            else:
+                wabd.write(str(abd) + "\n")
     f.close()
     wfa.close()
     wabd.close()

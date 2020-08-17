@@ -37,7 +37,7 @@ def main(argv):
 	group2.add_argument('-y', metavar = 'PERCENT',type=int, dest='bind', required=False, help='minimum required fraction of probe match to be h(y)bridized [50]', default=50)
 
 	group3 = parser.add_argument_group('Parameters for sequencing')
-	group3.add_argument('-p', action='store_true', help='generate paired-end reads [single]')
+	group3.add_argument('-p', '--paired-reads', action='store_true', help='generate paired-end reads [single]')
 	group3.add_argument('-n', help='do not care')
 	group3.add_argument('-1', metavar = 'INT', type=int, dest='readstart', required=True, help='start number of read')
 	group3.add_argument('-2', metavar = 'INT', type=int, dest='readend', required=True, help='end number of read')
@@ -67,7 +67,7 @@ def main(argv):
 	bind = args.bind
 	subid = args.processid
 
-	paired = args.p
+	paired = args.paired_reads
 	readlength = args.readlength
 	readstart = args.readstart
 	readend = args.readend
@@ -207,7 +207,7 @@ def main(argv):
 #	print gcVector
 #	u1, u2, newSD, m1, m2 = generateMatrices(isd, isize, gcVector)
 	gcSD = numpy.std(gcVector)
-	newSD = isd*2
+	newSD = isd * 2
 
 	#
 	# Start generating reads
@@ -270,12 +270,18 @@ def main(argv):
 		if refLen < imin:
 			continue
 
-		# If using RCE, GC bias should already be capture. As such, we do not
+		# If using RCE, GC bias should already be captured. As such, we do not
 		# need to filter fragments out based on this.
 		if not args.use_rce:
-			gccount = getGCCount(ref)
+			# This seems to be a bug as the gccount == 0. If you change to
+			# `getGCCount(ref)`, you get gccount actually given sensible
+			# results. But if you use this code, then nearly all reads are
+			# rejected because keep == False from the `H2` function. For now,
+			# keep it as what it was in the original __sub_wessim1.py.
+			gccount = getGCCount(seq)
 			keep = H2(refLen, gccount, isize, newSD, isd, gcSD, mvnTable)
 			if not keep:
+#				print "failed keep"
 				continue
 
 		if not paired:
@@ -373,6 +379,7 @@ def getFragmentUniform(abdlist, seqlist, last, mu, total, bind):
 		start = random.randint(0, margin)
 		seq = seq[start: start+mu]
 		gcCount = getGCCount(seq)
+		print(gcCount)
 		result.append(gcCount)
 		i+=1
 	return result
