@@ -1,4 +1,4 @@
-# Preamble
+## Preamble
 
 This is a fork of https://github.com/sak042/Wessim. As the original repository 
 appears to be abandoned, the following new features have been added to this 
@@ -18,7 +18,7 @@ fork:
 `Wessim1.py`. If you are looking to run the probe hybridization module, you 
 should refer back to the original repository (https://github.com/sak042/Wessim)**
 
-# Introduction
+## Introduction
 
 Wessim is a simulator for a targeted resequencing as generally known as 
 exome sequencing. Wessim basically generates a set of **artificial** DNA 
@@ -27,28 +27,30 @@ resequencing, we constraint the genomic regions that are used to generated DNA
 fragments to be only a part of the entire genome; they are usually exons and/or 
 a few introns and untranslated regions (UTRs).
 
-# Install Wessim
+## Installation and Requirements
 
-Download Wessim using the links in this page, or go to https://github.com/sak042/Wessim   
-To run Wessim, Python 2.7 or later is required. To install Python, go to http://python.org/
+The following programs are required to run Wessim (in ideal target mode) or to 
+prepare input files:
 
-## Requirements
-
-The following programs are required to run Wessim or to prepare input files:
-
-* **pysam** library: go to http://code.google.com/p/pysam/ to install pysam
-* **numpy** library: go to http://numpy.scipy.org/ to install numpy
-* **gfServer** and **gfClient**: In probe hybridization mode, Wessim runs more than 100,000 queries against the reference genome. This essentially requires a local blat server. gfServer and gfClient are pre-compiled programs for establishing private blat server on your computer. go to http://hgdownload.cse.ucsc.edu/admin/exe/ to download gfServer and gfClient (and set your local path to access the two programs anywhere). For more details about the tools, please refer to http://genome.ucsc.edu/FAQ/FAQblat.html#blat5
-* **faToTwoBit**: go to http://hgdownload.cse.ucsc.edu/admin/exe/ and download faToTwoBit. This is required to convert your FASTA file to .2bit 
-* **samtools**: samtools is needed to index your sample genome FASTA file (samtools faidx).
-* **GemSim** error models: Wessim uses GemSim's empirical error models for NGS read generation. Go to GemSim's project page (http://sourceforge.net/projects/gemsim/) to download GemSim. You will find several model files (e.g. ill100v4_p.gzip) under 'models' directory. Save them and remember their location.
+* Python (2.7): Wessim was written for Python 2.7. It will not work with 
+    Python 3.
+* `pysam`: go to http://code.google.com/p/pysam/ to install pysam
+* `numpy`: go to http://numpy.scipy.org/ to install numpy
+* `faToTwoBit`: go to http://hgdownload.cse.ucsc.edu/admin/exe/ and download 
+    faToTwoBit. This is required to convert your FASTA file to .2bit 
+* `samtools`: samtools is needed to index your sample genome FASTA file (samtools faidx).
+* GemSim error models: Wessim uses GemSim's empirical error models for NGS 
+    read generation. Go to GemSim's project page 
+    (http://sourceforge.net/projects/gemsim/) to download GemSim. You will find 
+    several model files (e.g. `ill100v4_p.gzip`) under models directory. Save 
+    them and remember their location.
  
-# Preparing Input Files 
+## Preparing Input Files 
 
 Wessim requires two major inputs. One is the sample genome sequence, and the 
 other is the target region information.
 
-## Sample genome sequence
+### Sample genome sequence
 
 This is a FASTA file (e.g. ref.fa). You will need to index the file and generate 
 .2bit:
@@ -58,26 +60,7 @@ samtools faidx ref.fa
 faToTwoBit ref.fa ref.2bit
 ```
 
-## Target region information
-
-Target regions can be specified by two different ways depending on how you are
-running Wessim.
-
-1. **Ideal targets**: In ideal target mode, you will provide a list of genomic 
-    coordinates in a BED file (e.g. chr1   798833 799125). Ideal targets of major 
-    exome capture platforms are freely available from vendor's website. For 
-    Agilent's SureSelect platforms, go to https://earray.chem.agilent.com/suredesign/. 
-    You must register at their site. After logging in, go to Find Designs and select 
-    Agilent Catalog at the menu tab. You will be able to download all information of 
-    currently available platforms including ideal target BED files and probe 
-    sequence text files. For NimbleGen's SeqCap go to 
-    http://www.nimblegen.com/products/seqcap/index.html and find BED files under 
-    Design and Annotation Files. 
-
-The probe sequences are only needed for running Wessim in probe hybridization
-mode.
-
-# Running Wessim
+## Running Wessim
 
 There are two modes you can run Wessim in:
 
@@ -88,7 +71,7 @@ There are two modes you can run Wessim in:
         for the ideal target mode. This README will not talk about this mode
         any further.
 
-## Ideal Target Mode
+### Ideal Target Mode
 
 To run ideal target mode:
 
@@ -114,6 +97,6 @@ To run ideal target mode:
 
 This will generate `result.fastq.gz` (single-end mode / gzip compressed) using 4 threads (CPU cores).
 
-# Contact
+## Contact
 
 * Fong Chun Chan <fongchun@alumni.ubc.ca>
