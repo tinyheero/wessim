@@ -43,23 +43,23 @@ def main(args):
     parameters = parse_args(args)
 
     print "Generating fasta file for given regions..."
+
     # Input files
     ref = pysam.Fastafile(parameters.fasta_file)
-    f = open(parameters.target_bed_file)
+#    f = open(parameters.target_bed_file)
 
     # Output files
     faoutfile = parameters.target_fasta_file
     abdoutfile = parameters.target_abd_file
-
     wfa = open(faoutfile, 'w')
     wabd = open(abdoutfile, 'w')
-    i = f.readline()
+
     abd = 0
-    while i:
+    with open(parameters.target_bed_file) as f:
         i = f.readline()
         values = i.split("\t")
-        if i.startswith("#") or len(values)<3:
-            continue
+        if i.startswith("#") or len(values) < 3:
+            next(f)
 
         chrom = values[0]
         start = max(int(values[1]) - parameters.slack, 1)
