@@ -105,32 +105,50 @@ Now we run Wessim:
 # Generate the reference files needed to run Wessim1.py
 ./get_region_vector.py \
         --fasta-file hg19.fa \
-        --target-bed-file example_data/example.bed \
+        --target-bed-file example_data/example_rce.bed \
         --target-fasta-file target_reference.fa \
         --target-abd-file target_reference.abd
 
 # Run Wessim1 in ideal target mode
 ./Wessim1.py \
         --target-fasta-file target_reference.fa \
-        --target-abd-file target_reference.abd
+        --target-abd-file target_reference.abd \
         -n 10000 \
         -l 100 \
         -M GemSIM_v1.6/models/ill100v4_p.gzip \
         -z \
         -o result \
-        -t 4
+        -t 1 \
+        --paired-reads
 ```
 
-This will generate `result.fastq.gz` (single-end mode / gzip compressed) using 
-4 threads (CPU cores). 
+This will generate `result.fastq.gz` (paired-end mode / gzip compressed) using 
+1 threads (CPU cores). 
 
-If you want to try it with RCE values, use the `example_data/example_rce.bed`
-BED file.
+If you want simulate reads uniformly from the target space, use the 
+`example_data/example.bed` BED file.  For example:
+
+```bash
+# Generate the reference files needed to run Wessim1.py
+./get_region_vector.py \
+        --fasta-file hg19.fa \
+        --target-bed-file example_data/example.bed \
+        --target-fasta-file target_reference.fa \
+        --target-abd-file target_reference.abd
+```
 
 ## Release History
 
 * 2.0: 
-    + 
+    + Bug fix for paired-end mode when using the "ideal target" approach.
+    + Insert sizes are drawn from a normal distributon
+    + Added relative capture efficiency (RCE) option
+    + Ability to call Wessim from outside of repository folder
+    + Option to add a prefix for simulated read names (`--read-name-prefix`)
+    + The original `getRegionVector` function has now been moved into its own 
+        script (`get_region_vector.py`). 
+    + Cleaned up the original repository (e.g. removed the `Wessim_ver_1.0` 
+        folder)
 * 1.0: Fork of the original repository (https://github.com/sak042/Wessim)
 
 ## Contact

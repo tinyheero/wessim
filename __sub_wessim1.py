@@ -281,7 +281,6 @@ def main(argv):
 			gccount = getGCCount(seq)
 			keep = H2(refLen, gccount, isize, newSD, isd, gcSD, mvnTable)
 			if not keep:
-#				print "failed keep"
 				continue
 
 		if not paired:
@@ -291,7 +290,7 @@ def main(argv):
 				continue
 			head1='@'+'r'+str(i) + read_name_prefix + fragment_chrom + "_" + str(fragment_start + pos + 1) + "_" + dirtag[dir]
 		else:
-			val=random.random()
+			val = random.random()
 			ln1 = RL()
 			ln2 = RL()
 
@@ -366,6 +365,12 @@ def getFragment(matchdic, key, mu, sigma, lower, bind):
 	return pickedfragment
 
 def getFragmentUniform(abdlist, seqlist, last, mu, total, bind):
+	"""
+	Parameters:
+		seqlist: List of sequences
+		mu: Fragment size
+		total: Total number of target regions to sample
+	"""
 	result = []
 	i = 0
 	while i < 1000:
@@ -379,7 +384,6 @@ def getFragmentUniform(abdlist, seqlist, last, mu, total, bind):
 		start = random.randint(0, margin)
 		seq = seq[start: start+mu]
 		gcCount = getGCCount(seq)
-		print(gcCount)
 		result.append(gcCount)
 		i+=1
 	return result
