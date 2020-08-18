@@ -78,8 +78,8 @@ chr14	19377416	19377841	chr14:19377416-19377841	1
 chr14	19378230	19378655	chr14:19378230-19378655	2
 ```
 
-The RCE value of a region represents the relative weight that wessim should be 
-sampling reads from. in this case, it was sample twice as many reads from 
+The RCE value of a region represents the relative weight that Wessim should be 
+sampling reads from. In this case, it will sample twice as many reads from 
 region `chr14:19378230-19378655` than `chr14:19377416-19377841`. 
 
 ## Example usage
@@ -132,12 +132,24 @@ If you want simulate reads uniformly from the target space, use the
 For example:
 
 ```bash
-# Generate the reference files needed to run Wessim1.py
+# Generate the reference files without RCE values
 ./get_region_vector.py \
         --fasta-file hg19.fa \
         --target-bed-file example_data/example.bed \
         --target-fasta-file target_reference.fa \
         --target-abd-file target_reference.abd
+
+# Run Wessim1 in ideal target mode without RCE values
+./Wessim1.py \
+        --target-fasta-file target_reference.fa \
+        --target-abd-file target_reference.abd \
+        -n 10000 \
+        -l 100 \
+        -M GemSIM_v1.6/models/ill100v4_p.gzip \
+        -z \
+        -o result \
+        -t 1 \
+        --paired-reads
 ```
 
 ## Release History
