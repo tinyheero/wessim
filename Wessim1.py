@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import sys
 import random
 import bisect
@@ -22,44 +23,76 @@ def main(argv):
 	t0 = time()
 	arguline = " ".join(argv)
 	parser = argparse.ArgumentParser(description='Wessim1: Whole Exome Sequencing SIMulator 1 (Ideal target region-based version)', prog='Wessim1', formatter_class=argparse.RawTextHelpFormatter)
+
 	group1 = parser.add_argument_group('Mandatory input files')
-	group1.add_argument('-R', metavar = 'FILE', dest='reference', required=True, help='faidx-indexed (R)eference genome FASTA file')
-	group1.add_argument('-B', metavar = 'FILE', dest='region', required=True, help='Target region .(B)ED file')
+	group1.add_argument(
+		'--target-fasta-file',
+		help='The target FASTA file generated from get_region_vector.py',
+		required=True
+	)
+	group1.add_argument(
+		'--target-abd-file',
+		help='The target abd file generated from get_region_vector.py',
+		required=True
+	)
+	group1.add_argument(
+		'-n', '--num-reads',
+		metavar='INT', type=int, dest='readnumber', required=True,
+		help='total (n)umber of reads'
+	)
+	group1.add_argument(
+		'-l', metavar = 'INT', type=int, dest='readlength', required=True,
+		help='read (l)ength (bp)'
+	)
+	group1.add_argument(
+		'-M', metavar = 'FILE', dest='model', required=True,
+		help='GemSim (M)odel file (.gzip)'
+	)
 
 	group2 = parser.add_argument_group('Parameters for exome capture')
-	group2.add_argument('-f', metavar = 'INT', type=int, dest='fragsize', required=False, help='mean (f)ragment size. this corresponds to insert size when sequencing in paired-end mode. [200]', default=200)
+	group2.add_argument(
+		'-f', '--fragment-size',
+		metavar = 'INT', type=int, dest='fragsize', required=False,
+		help='mean (f)ragment size. this corresponds to insert size when sequencing in paired-end mode. [200]',
+		default=200
+	)
 	group2.add_argument('-d', metavar = 'INT', type=int, dest='fragsd', required=False, help='standard (d)eviation of fragment size [50]', default=50)
 	group2.add_argument('-m', metavar = 'INT', type=int, dest='fragmin', required=False, help='(m)inimum fragment length [read_length + 20]')
-	group2.add_argument('-x', metavar = 'INT',type=int, dest='slack', required=False, help='slack margin of the given boundaries [0]', default=0) 
-	
+	group2.add_argument('-x', metavar = 'INT',type=int, dest='slack', required=False, help='slack margin of the given boundaries [0]', default=0)
+
 	group3 = parser.add_argument_group('Parameters for sequencing')
-	group3.add_argument('-p', action='store_true', help='generate paired-end reads [single]')
-	group3.add_argument('-n', metavar = 'INT', type=int, dest='readnumber', required=True, help='total (n)umber of reads')	
-	group3.add_argument('-l', metavar = 'INT', type=int, dest='readlength', required=True, help='read (l)ength (bp)')
-	group3.add_argument('-M', metavar = 'FILE', dest='model', required=True, help='GemSim (M)odel file (.gzip)')
-	group3.add_argument('-t', metavar = 'INT', type=int, dest='threadnumber', required=False, help='number of (t)hreaded subprocesses [1]', default=1) 
+	group3.add_argument(
+		'-p', '--paired-reads',
+		action='store_true',
+		help='Generate paired-end reads'
+	)
+	group3.add_argument('-t', metavar = 'INT', type=int, dest='threadnumber', required=False, help='number of (t)hreaded subprocesses [1]', default=1)
 
 	group4 = parser.add_argument_group('Output options')
 	group4.add_argument('-o', metavar = 'FILE', dest='outfile', help='(o)utput file header. ".fastq.gz" or ".fastq" will be attached automatically. Output will be splitted into two files in paired-end mode', required=True)
 	group4.add_argument('-z', action='store_true', help='compress output with g(z)ip [false]')
 	group4.add_argument('-q', metavar = 'INT', type=int, dest='qualbase', required=False, help='(q)uality score offset [33]', default=33)
 	group4.add_argument('-v', action='store_true', help='(v)erbose; print out intermediate messages.')
+	group4.add_argument('--read-name-prefix', dest='read_name_prefix', default = '_from_', required=False, help='Prefix to add to simulated read names (default: "%(default)s")')
+	group4.add_argument(
+		'--use-rce', action='store_true',
+		help='Use the target RCE values for generating reads'
+)
 
 	args = parser.parse_args()
-	reffile = args.reference
-	regionfile = args.region
-	 
+
 	isize = args.fragsize
 	isd = args.fragsd
 	imin = args.fragmin
 	slack = args.slack
 
-	getRegionVector(reffile, regionfile, slack)
-	paired = args.p
+	paired = args.paired_reads
 	readlength = args.readlength
-	readnumber = args.readnumber		
+	readnumber = args.readnumber
 	threadnumber = args.threadnumber
-	
+
+	read_name_prefix = args.read_name_prefix
+
 	if imin==None:
 		if paired:
 			imin = readlength + 20
@@ -67,18 +100,18 @@ def main(argv):
 			imin = readlength + 20
 	if isize < imin:
 		print "too small mean fragment size (" + str(isize) + ") compared to minimum length (" + str(imin) + "). Increase it and try again."
-		sys.exit(0) 
+		sys.exit(0)
 	model = args.model
-		
+
 	outfile = args.outfile
 	compress = args.z
 	qualbase = args.qualbase
 	verbose = args.v
 
-	print 
+	print
 	print "-------------------------------------------"
-	print "Reference:", reffile
-	print "Region file:", regionfile
+	print "Target FASTA file:", args.target_fasta_file
+	print "Target ABD file:", args.target_abd_file
 	print "Fragment:",isize, "+-", isd, ">", imin
 	print "Paired-end mode?", paired
 	print "Sequencing model:", model
@@ -87,18 +120,25 @@ def main(argv):
 	print "Gzip compress?", compress
 	print "Quality base:", qualbase
 	print "Thread number:", threadnumber
+	print "Read name prefix:", read_name_prefix
 	print "Job started at:", strftime("%Y-%m-%d %H:%M:%S", localtime())
 	print "-------------------------------------------"
 	print
+
+	cur_script_path = os.path.dirname(os.path.abspath(__file__))
 
 	processes = []
 	for t in range(0, threadnumber):
 		readstart = int(float(readnumber) / float(threadnumber) * t) + 1
 		readend = int(float(readnumber) / float(threadnumber) * (t+1))
-		command = "python __sub_wessim1.py " + arguline + " -1 " + str(readstart) + " -2 " + str(readend) + " -i " + str(t+1)
+
+		# Sub-command for __sub_wessim1.py
+		command = "python2 " + cur_script_path + "/" "__sub_wessim1.py " + arguline + " -1 " + str(readstart) + " -2 " + str(readend) + " -i " + str(t+1)
+		print command
 		p = Process(target=subprogram, args=(command, t+1))
 		p.start()
 		processes.append(p)
+
 	for p in processes:
 		p.join()
 	t1 = time()
@@ -164,34 +204,5 @@ def main(argv):
 		wread2.close()
 	sys.exit(0)
 
-def getRegionVector(fastafile, regionfile, slack):
-	print "Generating fasta file for given regions..."
-	faoutfile = regionfile + ".fa"
-	abdoutfile = regionfile + ".abd"
-	ref = pysam.Fastafile(fastafile)
-	f = open(regionfile)
-	wfa = open(faoutfile, 'w')
-	wabd = open(abdoutfile, 'w')
-	i = f.readline()
-	abd = 0
-	while i:
-		i = f.readline()
-		values = i.split("\t")
-		if i.startswith("#") or len(values)<3:
-			continue
-		chrom = values[0]
-		start = max(int(values[1]) - slack, 1)
-		end = int(values[2]) + slack
-		header = ">" + chrom + "_" + str(start) + "_" + str(end)
-		x = ref.fetch(chrom, start, end)
-		length = len(x)
-		abd += length
-		wfa.write(header + "\n")
-		wfa.write(x + "\n")
-		wabd.write(str(abd) + "\n")
-	f.close()
-	wfa.close()
-	wabd.close()
-	
 if __name__=="__main__":
 	main(sys.argv[1:])

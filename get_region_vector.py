@@ -3,9 +3,13 @@
 Generates a FASTA file from a set of regions
 """
 
-import os, argparse, sys, subprocess, pysam
+import os
+import argparse
+import sys
+import subprocess
+import pysam
 
-__author__ = "Fong Chun Chan <f.chan@achillestx.com>"
+__author__ = "Fong Chun Chan <fongchun@alumni.ubc.ca>"
 __script_examples__="""
 Examples:
 
@@ -39,33 +43,42 @@ def main(args):
     parameters = parse_args(args)
 
     print "Generating fasta file for given regions..."
-    # Input files
     ref = pysam.Fastafile(parameters.fasta_file)
-    f = open(parameters.target_bed_file)
 
     # Output files
-    faoutfile = parameters.target_fasta_file
-    abdoutfile = parameters.target_abd_file
+    wfa = open(parameters.target_fasta_file, 'w')
+    wabd = open(parameters.target_abd_file, 'w')
 
-    wfa = open(faoutfile, 'w')
-    wabd = open(abdoutfile, 'w')
-    i = f.readline()
+    # Running sum of the target space length
     abd = 0
-    while i:
-        i = f.readline()
-        values = i.split("\t")
-        if i.startswith("#") or len(values)<3:
-            continue
-        chrom = values[0]
-        start = max(int(values[1]) - parameters.slack, 1)
-        end = int(values[2]) + parameters.slack
-        header = ">" + chrom + "_" + str(start) + "_" + str(end)
-        x = ref.fetch(chrom, start, end)
-        length = len(x)
-        abd += length
-        wfa.write(header + "\n")
-        wfa.write(x + "\n")
-        wabd.write(str(abd) + "\n")
+    with open(parameters.target_bed_file) as f:
+        for line in f:
+            values = line.strip().split("\t")
+            if line.startswith("#") or len(values) < 3:
+                next(f)
+
+            chrom = values[0]
+            start = max(int(values[1]) - parameters.slack, 1)
+            end = int(values[2]) + parameters.slack
+
+            header = ">" + chrom + "_" + str(start) + "_" + str(end)
+            x = ref.fetch(chrom, start, end)
+            length = len(x)
+            abd += length
+
+            wfa.write(header + "\n")
+            wfa.write(x + "\n")
+
+            # If there is a 5th column, then we assume it is the relative
+            # capture efficiency (RCE)
+            if len(values) == 5:
+                target_rce = values[4]
+                wabd.write(str(abd) + "\t" + str(target_rce) + "\n")
+            else:
+                # If there are no RCE values to use, then we just output 1 as a
+                # placeholder
+                wabd.write(str(abd) + "\t" + str(1) + "\n")
+
     f.close()
     wfa.close()
     wabd.close()
