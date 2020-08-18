@@ -59,7 +59,6 @@ def main(argv):
 
 	args = parser.parse_args()
 	faoutfile = args.target_fasta_file
-	abdoutfile = args.target_abd_file
 
 	isize = args.fragsize
 	isd = args.fragsd
@@ -99,7 +98,7 @@ def main(argv):
 	#
 	target_reference_df = \
 		pd.read_csv(
-			abdoutfile, sep="\t",
+			args.target_abd_file, sep="\t",
 			header=None, names=["total_len", "rce"]
 		)
 

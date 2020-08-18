@@ -46,15 +46,14 @@ def main(args):
     ref = pysam.Fastafile(parameters.fasta_file)
 
     # Output files
-    faoutfile = parameters.target_fasta_file
-    abdoutfile = parameters.target_abd_file
-    wfa = open(faoutfile, 'w')
-    wabd = open(abdoutfile, 'w')
+    wfa = open(parameters.target_fasta_file, 'w')
+    wabd = open(parameters.target_abd_file, 'w')
 
+    # Running sum of the target space length
     abd = 0
     with open(parameters.target_bed_file) as f:
         for line in f:
-            values = line.split("\t")
+            values = line.strip().split("\t")
             if line.startswith("#") or len(values) < 3:
                 next(f)
 
@@ -76,7 +75,10 @@ def main(args):
                 target_rce = values[4]
                 wabd.write(str(abd) + "\t" + str(target_rce) + "\n")
             else:
-                wabd.write(str(abd) + "\n")
+                # If there are no RCE values to use, then we just output 1 as a
+                # placeholder
+                wabd.write(str(abd) + "\t" + str(1) + "\n")
+
     f.close()
     wfa.close()
     wabd.close()

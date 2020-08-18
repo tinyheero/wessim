@@ -15,13 +15,13 @@ fork:
 * Cleaned up the original repository (e.g. removed the `Wessim_ver_1.0` folder)
 
 **Enhancements to the code have been done for the "ideal target" mode (i.e.
-`Wessim1.py`. If you are looking to run the probe hybridization module, you 
+`Wessim1.py`). If you are looking to run the probe hybridization module, you 
 should refer back to the original repository (https://github.com/sak042/Wessim)**
 
 ## Introduction
 
 Wessim is a simulator for a targeted resequencing as generally known as 
-exome sequencing. Wessim basically generates a set of **artificial** DNA 
+exome sequencing. Wessim basically generates a set of artificial DNA 
 fragments for next generation sequencing (NGS) read simulation. In the targeted 
 resequencing, we constraint the genomic regions that are used to generated DNA 
 fragments to be only a part of the entire genome; they are usually exons and/or 
@@ -32,18 +32,19 @@ a few introns and untranslated regions (UTRs).
 The following programs are required to run Wessim (in ideal target mode) or to 
 prepare input files:
 
-* Python (2.7): Wessim was written for Python 2.7. It will not work with 
-    Python 3. You'll need these packages:
+* Python (2.7): Wessim was written for Python 2.7. **It will not work with 
+    Python 3**. You'll need these packages:
     + `pysam`
     + `numpy`
 * `faToTwoBit`: go to http://hgdownload.cse.ucsc.edu/admin/exe/ and download 
     faToTwoBit. This is required to convert your FASTA file to .2bit 
 * `samtools`: samtools is needed to index your sample genome FASTA file (samtools faidx).
-* GemSim error models: Wessim uses GemSim's empirical error models for NGS 
-    read generation. Go to GemSim's project page 
-    (http://sourceforge.net/projects/gemsim/) to download GemSim. You will find 
-    several model files (e.g. `ill100v4_p.gzip`) under models directory. Save 
-    them and remember their location.
+* GemSim error models: 
+    + Wessim uses GemSim's empirical error models for NGS 
+        read generation. Go to GemSim's project page 
+        (http://sourceforge.net/projects/gemsim/) to download GemSim. You will 
+        find several model files (e.g. `ill100v4_p.gzip`) under models 
+        directory. Save them and remember their location.
  
 ## How to Run
 
@@ -119,14 +120,16 @@ Now we run Wessim:
         -z \
         -o result \
         -t 1 \
-        --paired-reads
+        --paired-reads \
+        --use-rce
 ```
 
-This will generate `result.fastq.gz` (paired-end mode / gzip compressed) using 
-1 threads (CPU cores). 
+This will generate `result_1.fastq.gz` and `result_2.fastq.gz` 
+(paired-end mode / gzip compressed) using 1 threads (CPU cores). 
 
 If you want simulate reads uniformly from the target space, use the 
-`example_data/example.bed` BED file.  For example:
+`example_data/example.bed` BED file and drop the `--use-rce` argument.  
+For example:
 
 ```bash
 # Generate the reference files needed to run Wessim1.py
