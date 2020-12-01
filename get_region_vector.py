@@ -73,6 +73,10 @@ def main(args):
             # capture efficiency (RCE)
             if len(values) == 5:
                 target_rce = values[4]
+                if type(target_rce) != int or type(target_rce) != float:
+                    print "Found non-numeric RCE value"
+                    sys.exit(1)
+
                 wabd.write(str(abd) + "\t" + str(target_rce) + "\n")
             else:
                 # If there are no RCE values to use, then we just output 1 as a
