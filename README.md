@@ -154,6 +154,8 @@ For example:
 
 ## Release History
 
+* 2.0.1: 
+    + Add check for valid RCE values
 * 2.0: 
     + Bug fix for paired-end mode when using the "ideal target" approach.
     + Insert sizes are drawn from a normal distributon
